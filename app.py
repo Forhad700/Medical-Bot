@@ -2,7 +2,7 @@ import streamlit as st
 from huggingface_hub import InferenceClient
 
 st.set_page_config(page_title="Medical Assistant", page_icon="⚕️")
-st.title("🩺👩🏻‍⚕️ AI Medical Assistant")
+st.title("🩺👩🏻‍⚕️ Medical Bot Assistant")
 
 # POINT TO A STABLE BASE MODEL INSTEAD
 # This model is almost always 'warm' and ready on HF servers
@@ -50,4 +50,5 @@ if prompt := st.chat_input("🩸 Describe Your Symptoms..."):
         except Exception as e:
             st.error("The server is currently busy. Please wait 10 seconds and try again.")
             st.info("Technical Hint: If this persists, the Llama-3 API might be at its free-tier limit.")
+
 
