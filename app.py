@@ -2,7 +2,7 @@ import streamlit as st
 from huggingface_hub import InferenceClient
 
 st.set_page_config(page_title="Medical AI", page_icon="⚕️")
-st.title("⚕️ Medical Triage Assistant")
+st.title("⚕️ Medical Assistant")
 
 # Your merged model name
 REPO_ID = "aay2y/medical-triage-bot"
@@ -40,3 +40,4 @@ if prompt := st.chat_input("Describe your symptoms..."):
         except Exception as e:
 
             st.error("The model is waking up. Please wait 30 seconds and try again.")
+
