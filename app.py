@@ -6,7 +6,7 @@ st.title("🩺👩🏻‍⚕️ Medical Bot Assistant")
 
 # POINT TO A STABLE BASE MODEL INSTEAD
 # This model is almost always 'warm' and ready on HF servers
-REPO_ID = "meta-llama/Meta-Llama-3-8B-Instruct" 
+REPO_ID = "meta-llama/Llama-3.1-8B-Instruct"
 
 # Secure Token from Streamlit Secrets
 try:
@@ -50,5 +50,6 @@ if prompt := st.chat_input("🩸 Describe Your Symptoms..."):
         except Exception as e:
             st.error("The server is currently busy. Please wait 10 seconds and try again.")
             st.info("Technical Hint: If this persists, the Llama-3 API might be at its free-tier limit.")
+
 
 
