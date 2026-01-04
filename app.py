@@ -4,9 +4,8 @@ from huggingface_hub import InferenceClient
 st.set_page_config(page_title="Medical Assistant", page_icon="⚕️")
 st.title("🩺👩🏻‍⚕️ Medical Bot Assistant")
 
-# POINT TO A STABLE BASE MODEL INSTEAD
-# This model is almost always 'warm' and ready on HF servers
-REPO_ID = "mistralai/Mistral-7B-Instruct-v0.3"
+# Use Zephyr-7B: It is faster and has more free space than Llama or Mistral
+REPO_ID = "HuggingFaceH4/zephyr-7b-beta"
 
 # Secure Token from Streamlit Secrets
 try:
@@ -17,8 +16,6 @@ except:
 
 client = InferenceClient(model=REPO_ID, token=HF_TOKEN)
 
-# MEDICAL SYSTEM PROMPT: This is the 'Brain' of your bot
-# This tells the base Llama model to act exactly like your trained medical bot
 SYSTEM_PROMPT = """You are a professional Medical Triage Assistant. 
 Analyze the symptoms provided and provide a possible triage priority (Emergency, Urgent, or Non-Urgent).
 Always advise the user to seek professional medical help."""
@@ -35,19 +32,28 @@ if prompt := st.chat_input("🩸 Describe Your Symptoms..."):
 
     with st.chat_message("assistant"):
         try:
-            # We use the Chat Completion API which is more stable
-            response = client.chat_completion(
+            # STREAMING VERSION: This shows the answer word-by-word
+            stream = client.chat_completion(
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=250,
-                temperature=0.5
+                max_tokens=500,
+                temperature=0.5,
+                stream=True 
             )
-            answer = response.choices[0].message.content
-            st.write(answer)
-            st.session_state.messages.append({"role": "assistant", "content": answer})
-        except Exception as e:
-            st.error("The server is currently busy. Please wait 10 seconds and try again.")
-            st.info("Technical Hint: If this persists, the Llama-3 API might be at its free-tier limit.")
+            
+            placeholder = st.empty() # A spot to update the text live
+            full_response = ""
+            
+            for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    full_response += chunk.choices[0].delta.content
+                    placeholder.markdown(full_response + "▌") # Adds a typing cursor
+            
+            placeholder.markdown(full_response) # Final text without cursor
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
 
+        except Exception as e:
+            st.error("The server is busy. Please wait 10 seconds and try again.")
+            st.info("Tip: If this keeps happening, Hugging Face free servers are full. Try again in a few minutes.")
