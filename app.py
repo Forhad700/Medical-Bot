@@ -33,7 +33,7 @@ if prompt := st.chat_input("🩸 Describe Your Symptoms..."):
         full_response = ""
         
         try:
-            # Added a check to ensure stream is actually starting
+            
             stream = client.chat_completion(
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -45,20 +45,21 @@ if prompt := st.chat_input("🩸 Describe Your Symptoms..."):
             )
             
             for chunk in stream:
-                # Only try to add content if it exists
+                
                 if chunk.choices[0].delta.content is not None:
                     full_response += chunk.choices[0].delta.content
                     placeholder.markdown(full_response + "▌")
             
-            # This is the important part: clear the cursor and save
+           
             placeholder.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
 
         except Exception as e:
-            # Only show error if we didn't get any response at all
+            
             if not full_response:
                 st.error("The server is busy. Please try sending your message again in 10 seconds.")
             else:
-                # If we have a response, just finish it normally even if the connection cut at the very end
+                
                 placeholder.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
+
