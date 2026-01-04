@@ -4,7 +4,6 @@ from huggingface_hub import InferenceClient
 st.set_page_config(page_title="Medical Bot Assistant", page_icon="⚕️")
 st.title("🩺👩🏻‍⚕️ Medical Bot Assistant")
 
-# We use Llama-3 because it is the most stable on the free tier
 REPO_ID = "meta-llama/Meta-Llama-3-8B-Instruct"
 
 try:
@@ -30,27 +29,36 @@ if prompt := st.chat_input("🩸 Describe Your Symptoms..."):
     st.chat_message("user").write(prompt)
 
     with st.chat_message("assistant"):
+        placeholder = st.empty()
+        full_response = ""
+        
         try:
-            # This version uses streaming so you don't have to wait for the full response
+            # Added a check to ensure stream is actually starting
             stream = client.chat_completion(
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=400,
+                max_tokens=500,
                 temperature=0.5,
                 stream=True 
             )
             
-            placeholder = st.empty()
-            full_response = ""
             for chunk in stream:
-                if chunk.choices[0].delta.content:
+                # Only try to add content if it exists
+                if chunk.choices[0].delta.content is not None:
                     full_response += chunk.choices[0].delta.content
                     placeholder.markdown(full_response + "▌")
             
+            # This is the important part: clear the cursor and save
             placeholder.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
 
         except Exception as e:
-            st.error("The server is busy. Please try sending your message again in 10 seconds.")
+            # Only show error if we didn't get any response at all
+            if not full_response:
+                st.error("The server is busy. Please try sending your message again in 10 seconds.")
+            else:
+                # If we have a response, just finish it normally even if the connection cut at the very end
+                placeholder.markdown(full_response)
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
